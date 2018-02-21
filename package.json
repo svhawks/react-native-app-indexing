@@ -1,0 +1,23 @@
+{
+  "name": "react-native-app-indexing",
+  "version": "0.1.0",
+  "description": "A module wrapper which enables Firebase App Indexing in React Native",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eglocc/react-native-app-indexing.git"
+  },
+  "author": "Ergiz Gizer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eglocc/react-native-app-indexing/issues"
+  },
+  "homepage": "https://github.com/eglocc/react-native-app-indexing#readme",
+  "dependencies": {
+    "react": "16.0.0-alpha.6",
+    "react-native": "0.44.0"
+  }
+}
