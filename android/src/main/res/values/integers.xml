@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <integer name="default_timeout">300000</integer>
+    <integer name="default_timeout">4000</integer>
 </resources>
