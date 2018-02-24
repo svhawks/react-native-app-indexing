@@ -7,13 +7,11 @@ import android.support.v4.app.JobIntentService;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.facebook.react.bridge.ReadableArray;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.appindexing.FirebaseAppIndex;
 import com.google.firebase.appindexing.FirebaseAppIndexingInvalidArgumentException;
 import com.google.firebase.appindexing.Indexable;
-
-import org.json.JSONArray;
-import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,7 +31,7 @@ public class AppIndexingUpdateService extends JobIntentService {
     public static final String INSTALL_STICKERS_SUCCESSFULLY = "Successfully added stickers";
     public static final String FAILED_TO_INSTALL_STICKERS = "Failed to install stickers";
 
-    public static void enqueueWork(Context context, JSONArray stickerPack) {
+    public static void enqueueWork(Context context, ReadableArray stickerPack) {
         Intent intent = new Intent();
         String[] urls = extractUrlsFromPackage(stickerPack);
         intent.putExtra(STICKER_URL_ARRAY_KEY, urls);
@@ -126,15 +124,11 @@ public class AppIndexingUpdateService extends JobIntentService {
         return indexableBuilder;
     }
 
-    private static String[] extractUrlsFromPackage(JSONArray stickers) {
-        String[] stickerUrls = new String[stickers.length()];
+    private static String[] extractUrlsFromPackage(ReadableArray stickers) {
+        String[] stickerUrls = new String[stickers.size()];
         for(int i=0; i < stickerUrls.length; i++){
-            try {
-                String url = stickers.getJSONObject(i).getJSONObject("node").getString("fileUrl");
-                stickerUrls[i] = url;
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, "Error parsing with sticker at index " + i, e);
-            }
+            String url = stickers.getMap(i).getMap("node").getString("fileUrl");
+            stickerUrls[i] = url;
         }
 
         return stickerUrls;

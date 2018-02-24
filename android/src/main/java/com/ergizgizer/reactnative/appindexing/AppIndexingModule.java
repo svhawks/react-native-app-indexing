@@ -3,13 +3,7 @@ package com.ergizgizer.reactnative.appindexing;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-
-import org.json.JSONArray;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.annotation.Nullable;
+import com.facebook.react.bridge.ReadableArray;
 
 public class AppIndexingModule extends ReactContextBaseJavaModule {
 
@@ -20,15 +14,8 @@ public class AppIndexingModule extends ReactContextBaseJavaModule {
         return "AppIndexingModule";
     }
 
-    @Nullable
-    @Override
-    public Map<String, Object> getConstants() {
-        final Map<String, Object> constants = new HashMap<>();
-        return constants;
-    }
-
     @ReactMethod
-    public void syncStickers(JSONArray stickerPack){
+    public void syncStickers(ReadableArray stickerPack){
         AppIndexingUpdateService.enqueueWork(getReactApplicationContext(), stickerPack);
     }
 }
