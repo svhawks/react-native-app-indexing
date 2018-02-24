@@ -1,2 +1,7 @@
+/* @flow */
+
 import {NativeModules} from 'react-native';
-module.exports = NativeModules.AppIndexingModule;
+
+const AppIndexingModule = NativeModules.AppIndexingModule;
+
+export default AppIndexingModule;
