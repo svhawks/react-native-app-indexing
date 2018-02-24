@@ -55,21 +55,8 @@ public class AppIndexingUpdateService extends JobIntentService {
             List<Indexable> indexables = new ArrayList<>(stickers);
             indexables.add(stickerPack);
 
-            Task<Void> task = firebaseAppIndex.update(
+            firebaseAppIndex.update(
                     indexables.toArray(new Indexable[indexables.size()]));
-
-            task.addOnSuccessListener((voiD) -> {
-                        Log.d(LOG_TAG, INSTALL_STICKERS_SUCCESSFULLY);
-                        Toast.makeText(context, INSTALL_STICKERS_SUCCESSFULLY, Toast.LENGTH_SHORT)
-                                .show();
-                    }
-            );
-
-            task.addOnFailureListener((Exception e) -> {
-                Log.d(LOG_TAG, FAILED_TO_INSTALL_STICKERS, e);
-                Toast.makeText(context, FAILED_TO_INSTALL_STICKERS, Toast.LENGTH_SHORT)
-                        .show();
-            });
 
         } catch (IOException | FirebaseAppIndexingInvalidArgumentException e) {
             Log.e(LOG_TAG, "Unable to set stickers", e);
