@@ -9,7 +9,6 @@ import android.widget.Toast;
 
 import com.facebook.react.bridge.ReadableArray;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.appindexing.FirebaseAppIndex;
 import com.google.firebase.appindexing.FirebaseAppIndexingInvalidArgumentException;
 import com.google.firebase.appindexing.Indexable;
@@ -42,7 +41,6 @@ public class AppIndexingUpdateService extends JobIntentService {
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
         String[] stickerUrls = intent.getStringArrayExtra(STICKER_URL_ARRAY_KEY);
-        FirebaseApp.initializeApp(getApplicationContext());
         setStickers(getApplicationContext(), FirebaseAppIndex.getInstance(), stickerUrls);
     }
 
