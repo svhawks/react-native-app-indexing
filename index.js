@@ -1,6 +1,5 @@
-/* @flow */
 
-import {NativeModules} from 'react-native';
+import { NativeModules } from 'react-native';
 
 const AppIndexingModule = NativeModules.AppIndexingModule;
 
