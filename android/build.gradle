@@ -4,11 +4,10 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.2.3'
-        classpath 'com.google.gms:google-services:3.1.0'
     }
 }
 
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 26
@@ -21,23 +20,6 @@ android {
         versionName '1.0'
         ndk {
             abiFilters "armeabi-v7a", "x86"
-        }
-    }
-
-    signingConfigs {
-        release {
-            if (project.hasProperty("MYAPP_RELEASE_STORE_FILE")) {
-                storeFile file(MYAPP_RELEASE_STORE_FILE)
-                storePassword MYAPP_RELEASE_STORE_PASSWORD
-                keyAlias MYAPP_RELEASE_KEY_ALIAS
-                keyPassword MYAPP_RELEASE_KEY_PASSWORD
-            }
-        }
-    }
-
-    buildTypes {
-        release {
-            signingConfig signingConfigs.release
         }
     }
 
@@ -62,12 +44,13 @@ allprojects {
 
 
 dependencies {
-    compile('com.facebook.react:react-native:+') {
-        exclude group: 'support-v4'
+    compile ('com.facebook.react:react-native:+') {
+        exclude group: 'com.android.support', module: 'support-v4'
     }
-    compile('com.google.firebase:firebase-appindexing:11.0.4') {
-        exclude group: 'support-v4'
+    compile ('com.google.firebase:firebase-appindexing:11.8.0') {
+        exclude group: 'com.android.support', module: 'support-v4'
     }
-    compile 'com.android.support:support-v4:26.1.0'
+    compile ('com.android.support:support-v4:26.1.0') {
+        exclude group: 'com.android.support', module: 'appcompat-v7'
+    }
 }
-apply plugin: 'com.google.gms.google-services'
