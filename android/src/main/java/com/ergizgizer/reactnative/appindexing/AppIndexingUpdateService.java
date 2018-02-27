@@ -34,6 +34,7 @@ public class AppIndexingUpdateService extends JobIntentService {
     public static final String FAILED_TO_INSTALL_STICKERS = "Failed to install stickers";
 
     public static void enqueueWork(Context context, ReadableArray stickerPack) {
+        Log.d(LOG_TAG, "enqueuing work started");
         Intent intent = new Intent();
         String[] urls = extractUrlsFromPackage(stickerPack);
         intent.putExtra(STICKER_URL_ARRAY_KEY, urls);
@@ -42,13 +43,13 @@ public class AppIndexingUpdateService extends JobIntentService {
 
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
+        Log.d(LOG_TAG, "handling work started");
         String[] stickerUrls = intent.getStringArrayExtra(STICKER_URL_ARRAY_KEY);
         setStickers(FirebaseAppIndex.getInstance(), stickerUrls);
     }
 
-    private void setStickers(
-            FirebaseAppIndex firebaseAppIndex,
-            String[] stickerUrls) {
+    private void setStickers(FirebaseAppIndex firebaseAppIndex, String[] stickerUrls) {
+        Log.d(LOG_TAG, "sticker indexing started");
         try {
             List<Indexable> stickers = getIndexableStickers(stickerUrls);
             Indexable stickerPack = getIndexableStickerPack(stickers, stickerUrls[0]);
