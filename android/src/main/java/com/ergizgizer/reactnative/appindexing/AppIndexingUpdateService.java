@@ -8,6 +8,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.facebook.react.bridge.ReadableArray;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.appindexing.FirebaseAppIndex;
 import com.google.firebase.appindexing.FirebaseAppIndexingInvalidArgumentException;
@@ -57,9 +59,19 @@ public class AppIndexingUpdateService extends JobIntentService {
             Task<Void> task = firebaseAppIndex.update(
                     indexables.toArray(new Indexable[indexables.size()]));
 
-            task.addOnSuccessListener((voiD) -> Log.d(LOG_TAG, INSTALL_STICKERS_SUCCESSFULLY));
+            task.addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    Log.d(LOG_TAG, INSTALL_STICKERS_SUCCESSFULLY);
+                }
+            });
 
-            task.addOnFailureListener((voiD) -> Log.d(LOG_TAG, FAILED_TO_INSTALL_STICKERS));
+            task.addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.d(LOG_TAG, FAILED_TO_INSTALL_STICKERS);
+                }
+            });
 
         } catch (IOException | FirebaseAppIndexingInvalidArgumentException e) {
             Log.e(LOG_TAG, "Unable to set stickers", e);
