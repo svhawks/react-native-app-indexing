@@ -10,12 +10,12 @@ buildscript {
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.2"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 26
+        targetSdkVersion 22
         versionCode 1
         versionName '1.0'
         ndk {
@@ -47,7 +47,7 @@ dependencies {
     compile ('com.facebook.react:react-native:+') {
         exclude group: 'com.android.support', module: 'support-v4'
     }
-    compile ('com.google.firebase:firebase-appindexing:11.8.0') {
+    compile ('com.google.firebase:firebase-appindexing:11.0.4') {
         exclude group: 'com.android.support', module: 'support-v4'
     }
     compile ('com.android.support:support-v4:26.1.0') {
