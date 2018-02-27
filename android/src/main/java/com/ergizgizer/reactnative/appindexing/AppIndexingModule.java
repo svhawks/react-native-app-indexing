@@ -49,6 +49,7 @@ public class AppIndexingModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void syncStickers(ReadableArray stickerPack){
         Log.d(LOG_TAG, "I was in method syncStickers");
+        Log.d(LOG_TAG, stickerPack.toString());
         AppIndexingUpdateService.enqueueWork(getReactApplicationContext(), stickerPack);
     }
 }
