@@ -41,11 +41,10 @@ public class AppIndexingUpdateService extends JobIntentService {
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
         String[] stickerUrls = intent.getStringArrayExtra(STICKER_URL_ARRAY_KEY);
-        setStickers(getApplicationContext(), FirebaseAppIndex.getInstance(), stickerUrls);
+        setStickers(FirebaseAppIndex.getInstance(), stickerUrls);
     }
 
     private void setStickers(
-            final Context context,
             FirebaseAppIndex firebaseAppIndex,
             String[] stickerUrls) {
         try {
@@ -55,8 +54,12 @@ public class AppIndexingUpdateService extends JobIntentService {
             List<Indexable> indexables = new ArrayList<>(stickers);
             indexables.add(stickerPack);
 
-            firebaseAppIndex.update(
+            Task<Void> task = firebaseAppIndex.update(
                     indexables.toArray(new Indexable[indexables.size()]));
+
+            task.addOnSuccessListener((voiD) -> Log.d(LOG_TAG, INSTALL_STICKERS_SUCCESSFULLY));
+
+            task.addOnFailureListener((voiD) -> Log.d(LOG_TAG, FAILED_TO_INSTALL_STICKERS));
 
         } catch (IOException | FirebaseAppIndexingInvalidArgumentException e) {
             Log.e(LOG_TAG, "Unable to set stickers", e);
