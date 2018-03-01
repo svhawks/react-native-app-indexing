@@ -114,9 +114,9 @@ public class AppIndexingUpdateService extends JobIntentService {
             String[] tags = entry.getValue();
             Log.d(LOG_TAG, Arrays.toString(tags));
             Indexable.Builder indexableStickerBuilder = getIndexableBuilder(url, STICKER_URL_PATTERN, counter);
-            indexableStickerBuilder.put("isPartOf", new Indexable.Builder("StickerPack")
+            indexableStickerBuilder.put("keywords", tags)
+                                .put("isPartOf", new Indexable.Builder("StickerPack")
                                 .setName(CONTENT_PROVIDER_STICKER_PACK_NAME)
-                                .put("keywords", tags)
                                 .build());
             indexableStickers.add(indexableStickerBuilder.build());
             counter++;
