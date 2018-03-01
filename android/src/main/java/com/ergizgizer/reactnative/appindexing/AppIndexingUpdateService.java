@@ -167,7 +167,7 @@ public class AppIndexingUpdateService extends JobIntentService {
     }
 
     private static String extractDefaultStickerUrlFromPackage(ReadableMap stickerPack) {
-        return stickerPack.getMap("defaultSticker").getString("shareUrl");
+        return stickerPack.getMap("defaultSticker").getString("fileUrl");
     }
 
     private static String extractUrlFromSticker(ReadableMap stickerNode) {
