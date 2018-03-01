@@ -7,7 +7,6 @@ import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.google.firebase.FirebaseApp;
@@ -40,14 +39,16 @@ public class AppIndexingModule extends ReactContextBaseJavaModule {
 
         FirebaseApp.initializeApp(getReactApplicationContext(), builder.build(), appName);
 
+        appInitialized = true;
+
         WritableMap response = Arguments.createMap();
         response.putString(RESULT_KEY, "success");
         callback.invoke(null, response);
-        appInitialized = true;
+
     }
 
     @ReactMethod
-    public void syncStickers(ReadableArray stickerPack){
+    public void syncStickers(ReadableMap stickerPack){
         Log.d(LOG_TAG, "I was in method syncStickers");
         Log.d(LOG_TAG, stickerPack.toString());
         AppIndexingUpdateService.enqueueWork(getReactApplicationContext(), stickerPack);

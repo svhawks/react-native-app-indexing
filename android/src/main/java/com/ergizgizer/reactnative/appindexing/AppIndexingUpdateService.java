@@ -5,9 +5,9 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v4.app.JobIntentService;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.ReadableMap;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -17,14 +17,17 @@ import com.google.firebase.appindexing.Indexable;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AppIndexingUpdateService extends JobIntentService {
 
     private static final int UNIQUE_JOB_ID = 42;
 
     private static final String LOG_TAG = AppIndexingUpdateService.class.getSimpleName();
-    private static final String STICKER_URL_ARRAY_KEY = "Sticker URLs";
+    private static final String DEFAULT_STICKER_URL_KEY = "default-sticker-url";
+    private static final String STICKER_INFO_MAP_KEY = "sticker-info-map";
 
     private static final String STICKER_URL_PATTERN = "mystickers://sticker/%s";
     private static final String STICKER_PACK_URL_PATTERN = "mystickers://sticker/pack/%s";
@@ -33,26 +36,38 @@ public class AppIndexingUpdateService extends JobIntentService {
     public static final String INSTALL_STICKERS_SUCCESSFULLY = "Successfully added stickers";
     public static final String FAILED_TO_INSTALL_STICKERS = "Failed to install stickers";
 
-    public static void enqueueWork(Context context, ReadableArray stickerPack) {
+    public static void enqueueWork(Context context, ReadableMap stickerPack) {
         Log.d(LOG_TAG, "enqueuing work started");
-        Intent intent = new Intent();
-        String[] urls = extractUrlsFromPackage(stickerPack);
-        intent.putExtra(STICKER_URL_ARRAY_KEY, urls);
+        Intent intent = buildStickerIndexingIntentWithArgs(stickerPack);
+
         enqueueWork(context, AppIndexingUpdateService.class, UNIQUE_JOB_ID, intent);
     }
 
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
         Log.d(LOG_TAG, "handling work started");
-        String[] stickerUrls = intent.getStringArrayExtra(STICKER_URL_ARRAY_KEY);
-        setStickers(FirebaseAppIndex.getInstance(), stickerUrls);
+        LinkedHashMap<String, String[]> stickersInfo = (LinkedHashMap<String, String[]>) intent.getSerializableExtra(STICKER_INFO_MAP_KEY);
+        String defaultStickerUrl = intent.getStringExtra(DEFAULT_STICKER_URL_KEY);
+        setStickers(FirebaseAppIndex.getInstance(), defaultStickerUrl, stickersInfo);
     }
 
-    private void setStickers(FirebaseAppIndex firebaseAppIndex, String[] stickerUrls) {
+    private static Intent buildStickerIndexingIntentWithArgs(ReadableMap stickerPack) {
+        Intent intent = new Intent();
+        String defaultStickerUrl = extractDefaultStickerUrlFromPackage(stickerPack);
+        ReadableArray stickers = stickerPack.getMap("stickers").getArray("edges");
+        LinkedHashMap<String, String[]> stickersInfo = extractStickersInfoFromPackage(stickers);
+        intent.putExtra(DEFAULT_STICKER_URL_KEY, defaultStickerUrl);
+        intent.putExtra(STICKER_INFO_MAP_KEY, stickersInfo);
+        return intent;
+    }
+
+    private void setStickers(FirebaseAppIndex firebaseAppIndex,
+                             String defaultStickerUrl,
+                             LinkedHashMap<String, String[]> stickersInfo) {
         Log.d(LOG_TAG, "sticker indexing started");
         try {
-            List<Indexable> stickers = getIndexableStickers(stickerUrls);
-            Indexable stickerPack = getIndexableStickerPack(stickers, stickerUrls[0]);
+            List<Indexable> stickers = getIndexableStickers(stickersInfo);
+            Indexable stickerPack = getIndexableStickerPack(stickers, defaultStickerUrl);
 
             List<Indexable> indexables = new ArrayList<>(stickers);
             indexables.add(stickerPack);
@@ -87,19 +102,31 @@ public class AppIndexingUpdateService extends JobIntentService {
         return indexableBuilder.build();
     }
 
-    private List<Indexable> getIndexableStickers(String[] stickerUrls) throws IOException,
+    private List<Indexable> getIndexableStickers(LinkedHashMap<String, String[]> stickersInfo) throws IOException,
             FirebaseAppIndexingInvalidArgumentException {
         List<Indexable> indexableStickers = new ArrayList<>();
 
-        for (int i = 1; i < stickerUrls.length; i++) {
-            Indexable.Builder indexableStickerBuilder = getIndexableBuilder(stickerUrls[i], STICKER_URL_PATTERN, i);
-            indexableStickerBuilder.put("keywords", "tag1_" + i, "tag2_" + i)
-                    // StickerPack object that the sticker is part of.
+        int counter = 1;
+        for (Map.Entry<String, String[]> entry: stickersInfo.entrySet()) {
+            String url = entry.getKey();
+            String[] tags = entry.getValue();
+            Indexable.Builder indexableStickerBuilder = getIndexableBuilder(url, STICKER_URL_PATTERN, counter);
+            indexableStickerBuilder.put("keywords", tags)
                     .put("partOf", new Indexable.Builder("StickerPack")
-                            .setName(CONTENT_PROVIDER_STICKER_PACK_NAME)
-                            .build());
+                                .setName(CONTENT_PROVIDER_STICKER_PACK_NAME)
+                                .build());
             indexableStickers.add(indexableStickerBuilder.build());
         }
+
+//        for (int i = 1; i < stickerUrls.length; i++) {
+//            Indexable.Builder indexableStickerBuilder = getIndexableBuilder(stickerUrls[i], STICKER_URL_PATTERN, i);
+//            indexableStickerBuilder.put("keywords", "tag1_" + i, "tag2_" + i)
+//                    // StickerPack object that the sticker is part of.
+//                    .put("partOf", new Indexable.Builder("StickerPack")
+//                            .setName(CONTENT_PROVIDER_STICKER_PACK_NAME)
+//                            .build());
+//            indexableStickers.add(indexableStickerBuilder.build());
+//        }
 
         return indexableStickers;
     }
@@ -127,13 +154,33 @@ public class AppIndexingUpdateService extends JobIntentService {
         return indexableBuilder;
     }
 
-    private static String[] extractUrlsFromPackage(ReadableArray stickers) {
-        String[] stickerUrls = new String[stickers.size()];
-        for(int i=0; i < stickerUrls.length; i++){
-            String url = stickers.getMap(i).getMap("node").getString("fileUrl");
-            stickerUrls[i] = url;
+    private static LinkedHashMap<String, String[]> extractStickersInfoFromPackage(ReadableArray stickers) {
+        LinkedHashMap<String, String[]> stickerInfo = new LinkedHashMap<>(stickers.size());
+        for(int i=0; i < stickers.size(); i++){
+            ReadableMap stickerNode = stickers.getMap(i).getMap("node");
+            String url = extractUrlFromSticker(stickerNode);
+            String[] tags = extractTagsFromSticker(stickerNode);
+            stickerInfo.put(url, tags);
         }
 
-        return stickerUrls;
+        return stickerInfo;
+    }
+
+    private static String extractDefaultStickerUrlFromPackage(ReadableMap stickerPack) {
+        return stickerPack.getMap("defaultSticker").getString("shareUrl");
+    }
+
+    private static String extractUrlFromSticker(ReadableMap stickerNode) {
+        return stickerNode.getString("fileUrl");
+    }
+
+    private static String[] extractTagsFromSticker(ReadableMap stickerNode) {
+        ReadableArray tagsArray = stickerNode.getMap("tags").getArray("edges");
+        String[] tags = new String[tagsArray.size()];
+        for (int i=0; i<tags.length; i++) {
+            String tagName = tagsArray.getMap(i).getMap("node").getString("name");
+            tags[i] = tagName;
+        }
+        return tags;
     }
 }
