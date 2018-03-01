@@ -17,6 +17,7 @@ import com.google.firebase.appindexing.Indexable;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,7 @@ public class AppIndexingUpdateService extends JobIntentService {
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
         Log.d(LOG_TAG, "handling work started");
-        LinkedHashMap<String, String[]> stickersInfo = (LinkedHashMap<String, String[]>) intent.getSerializableExtra(STICKER_INFO_MAP_KEY);
+        HashMap<String, String[]> stickersInfo = (HashMap<String, String[]>) intent.getSerializableExtra(STICKER_INFO_MAP_KEY);
         String defaultStickerUrl = intent.getStringExtra(DEFAULT_STICKER_URL_KEY);
         setStickers(FirebaseAppIndex.getInstance(), defaultStickerUrl, stickersInfo);
     }
@@ -63,7 +64,7 @@ public class AppIndexingUpdateService extends JobIntentService {
 
     private void setStickers(FirebaseAppIndex firebaseAppIndex,
                              String defaultStickerUrl,
-                             LinkedHashMap<String, String[]> stickersInfo) {
+                             HashMap<String, String[]> stickersInfo) {
         Log.d(LOG_TAG, "sticker indexing started");
         try {
             List<Indexable> stickers = getIndexableStickers(stickersInfo);
@@ -102,7 +103,7 @@ public class AppIndexingUpdateService extends JobIntentService {
         return indexableBuilder.build();
     }
 
-    private List<Indexable> getIndexableStickers(LinkedHashMap<String, String[]> stickersInfo) throws IOException,
+    private List<Indexable> getIndexableStickers(HashMap<String, String[]> stickersInfo) throws IOException,
             FirebaseAppIndexingInvalidArgumentException {
         List<Indexable> indexableStickers = new ArrayList<>();
 
