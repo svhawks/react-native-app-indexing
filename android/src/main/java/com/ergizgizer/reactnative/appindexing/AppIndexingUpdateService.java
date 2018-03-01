@@ -17,6 +17,7 @@ import com.google.firebase.appindexing.Indexable;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -111,9 +112,10 @@ public class AppIndexingUpdateService extends JobIntentService {
         for (Map.Entry<String, String[]> entry: stickersInfo.entrySet()) {
             String url = entry.getKey();
             String[] tags = entry.getValue();
+            Log.d(LOG_TAG, Arrays.toString(tags));
             Indexable.Builder indexableStickerBuilder = getIndexableBuilder(url, STICKER_URL_PATTERN, counter);
             indexableStickerBuilder.put("keywords", tags)
-                    .put("partOf", new Indexable.Builder("StickerPack")
+                    .put("isPartOf", new Indexable.Builder("StickerPack")
                                 .setName(CONTENT_PROVIDER_STICKER_PACK_NAME)
                                 .build());
             indexableStickers.add(indexableStickerBuilder.build());
