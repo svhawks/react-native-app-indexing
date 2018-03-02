@@ -35,13 +35,22 @@ public class AppIndexingModule extends ReactContextBaseJavaModule {
         builder.setApplicationId(options.getString("appId"));
         builder.setProjectId(options.getString("projectId"));
 
-        if (FirebaseApp.getInstance() == null)
-            FirebaseApp.initializeApp(getReactApplicationContext(), builder.build(), appName);
+        if (FirebaseApp.getInstance() == null) {
+            if (appName == null)
+                FirebaseApp.initializeApp(getReactApplicationContext(), builder.build());
+            else
+                FirebaseApp.initializeApp(getReactApplicationContext(), builder.build(), appName);
+        }
 
         WritableMap response = Arguments.createMap();
         response.putString(RESULT_KEY, "success");
         callback.invoke(null, response);
 
+    }
+
+    @ReactMethod
+    public void initializeApp(ReadableMap options, Callback callback) {
+        initializeApp(null, options, callback);
     }
 
     @ReactMethod
