@@ -2,7 +2,6 @@ package com.ergizgizer.reactnative.appindexing;
 
 import android.content.Intent;
 
-
 import com.facebook.react.HeadlessJsTaskService;
 import com.facebook.react.jstasks.HeadlessJsTaskConfig;
 
