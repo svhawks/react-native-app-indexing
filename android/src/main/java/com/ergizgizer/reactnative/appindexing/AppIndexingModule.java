@@ -49,11 +49,6 @@ public class AppIndexingModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void initializeApp(ReadableMap options, Callback callback) {
-        initializeApp(null, options, callback);
-    }
-
-    @ReactMethod
     public void syncStickers(ReadableMap stickerPack){
         Log.d(LOG_TAG, "I was in method syncStickers");
         Log.d(LOG_TAG, stickerPack.toString());
