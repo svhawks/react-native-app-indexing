@@ -35,7 +35,7 @@ public class AppIndexingModule extends ReactContextBaseJavaModule {
         builder.setApplicationId(options.getString("appId"));
         builder.setProjectId(options.getString("projectId"));
 
-        if (FirebaseApp.getInstance("Leo Stickers App") == null)
+        if (FirebaseApp.getInstance() == null)
             FirebaseApp.initializeApp(getReactApplicationContext(), builder.build(), appName);
 
         WritableMap response = Arguments.createMap();
