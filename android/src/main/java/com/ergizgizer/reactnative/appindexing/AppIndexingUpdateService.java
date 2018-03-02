@@ -39,6 +39,7 @@ public class AppIndexingUpdateService extends JobIntentService {
     private static final String STICKER_URL_PATTERN = "mystickers://sticker/%s";
     private static final String STICKER_PACK_URL_PATTERN = "mystickers://sticker/pack/%s";
     private static final String STICKER_PACK_NAME = "Firebase Storage Content Pack";
+    private static final String STICKER_FILENAME_PATTERN = "sticker%s.png";
 
     private static final String INSTALL_STICKERS_SUCCESSFULLY = "Successfully added stickers";
     private static final String FAILED_TO_INSTALL_STICKERS = "Failed to install stickers";
@@ -126,14 +127,14 @@ public class AppIndexingUpdateService extends JobIntentService {
         }
     }
 
-    private Indexable getIndexableStickerPack(String packageId, String defaultStickerUrl, List<StickerBuilder> stickers)
+    private Indexable getIndexableStickerPack(String packageId, String defaultStickerUrl, List<StickerBuilder> stickerBuilders)
             throws IOException, FirebaseAppIndexingInvalidArgumentException {
 
         StickerPackBuilder stickerPackBuilder = Indexables.stickerPackBuilder()
                 .setName(STICKER_PACK_NAME)
-                .setUrl(String.format(STICKER_PACK_URL_PATTERN, packageId))
+                .setUrl(String.format(STICKER_PACK_URL_PATTERN, stickerBuilders.size()))
                 .setImage(defaultStickerUrl)
-                .setHasSticker(stickers.toArray(new StickerBuilder[stickers.size()]))
+                .setHasSticker(stickerBuilders.toArray(new StickerBuilder[stickerBuilders.size()]))
                 .setDescription("description");
 
          return stickerPackBuilder.build();
@@ -161,7 +162,7 @@ public class AppIndexingUpdateService extends JobIntentService {
             String[] tags = entry.getValue();
             Log.d(LOG_TAG, Arrays.toString(tags));
             StickerBuilder stickerBuilder = Indexables.stickerBuilder()
-                    .setName(STICKER_PACK_NAME)
+                    .setName(String.format(STICKER_FILENAME_PATTERN, counter))
                     .setUrl(String.format(STICKER_URL_PATTERN, counter))
                     .setImage(imageUrl)
                     .setDescription("description")
