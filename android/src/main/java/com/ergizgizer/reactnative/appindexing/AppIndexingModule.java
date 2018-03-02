@@ -26,7 +26,7 @@ public class AppIndexingModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void initializeApp(String appName, ReadableMap options, Callback callback) {
+    public void initializeApp(ReadableMap options, Callback callback) {
         Log.d(LOG_TAG, "I was in method initalizeApp");
 
         FirebaseOptions.Builder builder = new FirebaseOptions.Builder();
@@ -35,12 +35,8 @@ public class AppIndexingModule extends ReactContextBaseJavaModule {
         builder.setApplicationId(options.getString("appId"));
         builder.setProjectId(options.getString("projectId"));
 
-        if (FirebaseApp.getInstance() == null) {
-            if (appName == null)
-                FirebaseApp.initializeApp(getReactApplicationContext(), builder.build());
-            else
-                FirebaseApp.initializeApp(getReactApplicationContext(), builder.build(), appName);
-        }
+        if (FirebaseApp.getInstance() == null)
+            FirebaseApp.initializeApp(getReactApplicationContext(), builder.build());
 
         WritableMap response = Arguments.createMap();
         response.putString(RESULT_KEY, "success");
