@@ -17,7 +17,6 @@ public class AppIndexingModule extends ReactContextBaseJavaModule {
     public static final String LOG_TAG = AppIndexingModule.class.getSimpleName();
 
     private static final String RESULT_KEY = "result";
-    private boolean appInitialized;
 
     public AppIndexingModule(ReactApplicationContext reactContext) { super(reactContext); }
 
@@ -29,7 +28,6 @@ public class AppIndexingModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void initializeApp(String appName, ReadableMap options, Callback callback) {
         Log.d(LOG_TAG, "I was in method initalizeApp");
-        if (appInitialized) return;
 
         FirebaseOptions.Builder builder = new FirebaseOptions.Builder();
 
@@ -38,8 +36,6 @@ public class AppIndexingModule extends ReactContextBaseJavaModule {
         builder.setProjectId(options.getString("projectId"));
 
         FirebaseApp.initializeApp(getReactApplicationContext(), builder.build(), appName);
-
-        appInitialized = true;
 
         WritableMap response = Arguments.createMap();
         response.putString(RESULT_KEY, "success");
