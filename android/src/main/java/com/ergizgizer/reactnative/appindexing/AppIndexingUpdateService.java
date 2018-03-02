@@ -134,8 +134,7 @@ public class AppIndexingUpdateService extends JobIntentService {
                 .setName(STICKER_PACK_NAME)
                 .setUrl(String.format(STICKER_PACK_URL_PATTERN, stickerBuilders.size()))
                 .setImage(defaultStickerUrl)
-                .setHasSticker(stickerBuilders.toArray(new StickerBuilder[stickerBuilders.size()]))
-                .setDescription("description");
+                .setHasSticker(stickerBuilders.toArray(new StickerBuilder[stickerBuilders.size()]));
 
          return stickerPackBuilder.build();
     }
@@ -165,7 +164,6 @@ public class AppIndexingUpdateService extends JobIntentService {
                     .setName(String.format(STICKER_FILENAME_PATTERN, counter))
                     .setUrl(String.format(STICKER_URL_PATTERN, counter))
                     .setImage(imageUrl)
-                    .setDescription("description")
                     .setIsPartOf(Indexables.stickerPackBuilder()
                             .setName(STICKER_PACK_NAME))
                     .setKeywords(tags);
