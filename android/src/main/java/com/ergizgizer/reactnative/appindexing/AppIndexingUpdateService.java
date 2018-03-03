@@ -68,6 +68,7 @@ public class AppIndexingUpdateService extends JobIntentService {
         intent.putExtra(STICKER_PACK_ID_KEY, packageId);
         intent.putExtra(DEFAULT_STICKER_URL_KEY, defaultStickerUrl);
         intent.putExtra(STICKER_INFO_MAP_KEY, stickersInfo);
+
         return intent;
     }
 
@@ -99,7 +100,7 @@ public class AppIndexingUpdateService extends JobIntentService {
         try {
             List<StickerBuilder> stickerBuilders = createStickerBuilders(stickersInfo);
             List<Indexable> stickers = getIndexableStickers(stickerBuilders);
-            Indexable stickerPack = getIndexableStickerPack(packageId, defaultStickerUrl, stickerBuilders);
+            Indexable stickerPack = getIndexableStickerPack(defaultStickerUrl, stickerBuilders);
 
             List<Indexable> indexables = new ArrayList<>(stickers);
             indexables.add(stickerPack);
@@ -126,7 +127,7 @@ public class AppIndexingUpdateService extends JobIntentService {
         }
     }
 
-    private Indexable getIndexableStickerPack(String packageId, String defaultStickerUrl, List<StickerBuilder> stickerBuilders)
+    private Indexable getIndexableStickerPack(String defaultStickerUrl, List<StickerBuilder> stickerBuilders)
             throws IOException, FirebaseAppIndexingInvalidArgumentException {
 
         StickerPackBuilder stickerPackBuilder = Indexables.stickerPackBuilder()
@@ -134,7 +135,7 @@ public class AppIndexingUpdateService extends JobIntentService {
                 .setUrl(String.format(STICKER_PACK_URL_PATTERN, stickerBuilders.size()))
                 .setImage(defaultStickerUrl)
                 .setHasSticker(stickerBuilders.toArray(new StickerBuilder[stickerBuilders.size()]));
-
+        
          return stickerPackBuilder.build();
     }
 
