@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -176,7 +175,7 @@ public class AppIndexingUpdateService extends JobIntentService {
     }
 
     private static HashMap<String, String[]> extractStickersInfoFromPackage(ReadableArray stickers) {
-        HashMap<String, String[]> stickerInfo = new LinkedHashMap<>(stickers.size());
+        HashMap<String, String[]> stickerInfo = new HashMap<>(stickers.size());
         for(int i=0; i < stickers.size(); i++){
             ReadableMap stickerNode = stickers.getMap(i).getMap("node");
             String url = extractUrlFromSticker(stickerNode);
