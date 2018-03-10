@@ -1,7 +1,5 @@
 package com.ergizgizer.reactnative.appindexing;
 
-import android.util.Log;
-
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -27,7 +25,6 @@ public class AppIndexingModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void initializeApp(ReadableMap options, Callback callback) {
-        Log.d(LOG_TAG, "I was in method initalizeApp");
 
         FirebaseOptions.Builder builder = new FirebaseOptions.Builder();
 
@@ -45,9 +42,17 @@ public class AppIndexingModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void syncStickers(ReadableMap stickerPack){
-        Log.d(LOG_TAG, "I was in method syncStickers");
-        Log.d(LOG_TAG, stickerPack.toString());
-        AppIndexingUpdateService.enqueueWork(getReactApplicationContext(), stickerPack);
+    public void addStickers(ReadableMap stickerPack){
+        AppIndexingUpdateService.addStickers(getReactApplicationContext(), stickerPack);
+    }
+
+    @ReactMethod
+    public void removeStickers(ReadableMap stickerPack){
+        AppIndexingUpdateService.removeStickers(getReactApplicationContext(), stickerPack);
+    }
+
+    @ReactMethod
+    public void removeAllStickers() {
+        AppIndexingUpdateService.removeAllStickers(getReactApplicationContext());
     }
 }
