@@ -36,7 +36,7 @@ public class AppIndexingModule extends ReactContextBaseJavaModule {
             FirebaseApp.initializeApp(getReactApplicationContext(), builder.build());
 
         WritableMap response = Arguments.createMap();
-        response.putString(RESULT_KEY, "success");
+        response.putString(RESULT_KEY, "Firebase app initialization is successful!");
         callback.invoke(null, response);
 
     }

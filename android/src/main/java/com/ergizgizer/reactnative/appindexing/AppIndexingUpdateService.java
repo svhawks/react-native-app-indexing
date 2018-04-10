@@ -29,19 +29,19 @@ import java.util.Map;
 
 public class AppIndexingUpdateService extends JobIntentService {
 
+    private static final String LOG_TAG = AppIndexingUpdateService.class.getSimpleName();
+
     private static final int UNIQUE_JOB_ID = 42;
 
-    private static final int REMOVE_ALL_STICKERS_ACTION = 0;
-    private static final int REMOVE_STICKERS_ACTION = 1;
-    private static final int ADD_STICKERS_ACTION = 2;
+    private static final String REMOVE_ALL_STICKERS_ACTION = "com.ergizgizer.stickerindexing.action.removeAllStickers";
+    private static final String REMOVE_STICKERS_ACTION = "com.ergizgizer.stickerindexing.action.removeStickers";
+    private static final String ADD_STICKERS_ACTION = "com.ergizgizer.stickerindexing.action.addStickers";
 
-    private static final String LOG_TAG = AppIndexingUpdateService.class.getSimpleName();
     private static final String DEFAULT_STICKER_URL_KEY = "default-sticker-url";
     private static final String STICKER_INFO_MAP_KEY = "sticker-info-map";
     private static final String STICKER_PACK_ID_KEY = "sticker-pack-id";
     private static final String STICKER_PACK_NAME_KEY = "sticker-pack-name";
     private static final String STICKERS_COUNT_KEY = "stickers-count";
-    private static final String ACTION_ID_KEY = "action-id";
 
     private static final String STICKER_URL_PATTERN = "mystickers://sticker/%s/%d";
     private static final String STICKER_PACK_URL_PATTERN = "mystickers://sticker/pack/%s";
@@ -71,24 +71,25 @@ public class AppIndexingUpdateService extends JobIntentService {
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
         Bundle stickerData = intent.getExtras();
-        int action = stickerData.getInt(ACTION_ID_KEY);
-        switch (action) {
+        switch (intent.getAction()) {
             case REMOVE_ALL_STICKERS_ACTION:
-                clearAll(FirebaseAppIndex.getInstance());
+                removeAllStickers(FirebaseAppIndex.getInstance());
+                break;
             case REMOVE_STICKERS_ACTION:
-                unsetStickers(FirebaseAppIndex.getInstance(), stickerData);
+                removeStickers(FirebaseAppIndex.getInstance(), stickerData);
                 break;
             case ADD_STICKERS_ACTION:
                 setStickers(FirebaseAppIndex.getInstance(), stickerData);
                 break;
-                default: throw new IllegalStateException("This action is not recognized in this service");
+            default:
+                throw new IllegalStateException("This action is not recognized in this service");
         }
 
     }
 
-    private static Intent buildIntentWithStickerData(@Nullable ReadableMap stickerPack, int action) {
+    private static Intent buildIntentWithStickerData(@Nullable ReadableMap stickerPack, String action) {
         Intent intent = new Intent();
-        intent.putExtra(ACTION_ID_KEY, action);
+        intent.setAction(action);
 
         //Return the intent early with only the action key.
         if (action == REMOVE_ALL_STICKERS_ACTION) return intent;
@@ -116,7 +117,7 @@ public class AppIndexingUpdateService extends JobIntentService {
         return intent;
     }
 
-    private void clearAll(FirebaseAppIndex firebaseAppIndex) {
+    private void removeAllStickers(FirebaseAppIndex firebaseAppIndex) {
         Task<Void> task = firebaseAppIndex.removeAll();
 
         task.addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -134,16 +135,24 @@ public class AppIndexingUpdateService extends JobIntentService {
         });
     }
 
-    private void unsetStickers(FirebaseAppIndex firebaseAppIndex, Bundle stickerData) {
+    private void removeStickers(FirebaseAppIndex firebaseAppIndex, Bundle stickerData) {
+        // Get data from the passed bundle
         String packageId = stickerData.getString(STICKER_PACK_ID_KEY);
         int stickerCount = stickerData.getInt(STICKERS_COUNT_KEY);
+
+        // Remove the sticker package
         Task<Void> removePackTask = firebaseAppIndex.remove(String.format(STICKER_PACK_URL_PATTERN, packageId));
+
+        // Put all sticker urls into an array
         String[] stickerUrls = new String[stickerCount];
-        for (int i=0; i<stickerCount; i++) {
+        for (int i = 0; i < stickerCount; i++) {
             stickerUrls[i] = String.format(STICKER_URL_PATTERN, packageId, i);
         }
+
+        // Remove all stickers in the package
         Task<Void> removeStickersTask = firebaseAppIndex.remove(stickerUrls);
 
+        // Listeners for tasks
         removePackTask.addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
@@ -174,53 +183,53 @@ public class AppIndexingUpdateService extends JobIntentService {
     }
 
     private void setStickers(FirebaseAppIndex firebaseAppIndex, Bundle stickerData) {
+        // Get data from the passed bundle
         String packageId = stickerData.getString(STICKER_PACK_ID_KEY);
         String packageName = stickerData.getString(STICKER_PACK_NAME_KEY);
         String defaultStickerUrl = stickerData.getString(DEFAULT_STICKER_URL_KEY);
         HashMap<String, String[]> stickersInfo = (HashMap<String, String[]>) stickerData.getSerializable(STICKER_INFO_MAP_KEY);
-        try {
-            List<StickerBuilder> stickerBuilders = createStickerBuilders(packageId, packageName, stickersInfo);
-            List<Indexable> stickers = getIndexableStickers(packageName, stickerBuilders);
-            Indexable stickerPack = getIndexableStickerPack(packageId, packageName, defaultStickerUrl, stickerBuilders);
 
-            List<Indexable> indexables = new ArrayList<>(stickers);
-            indexables.add(stickerPack);
 
-            Task<Void> task = firebaseAppIndex.update(
-                    indexables.toArray(new Indexable[indexables.size()]));
+        // Build indexables
+        List<StickerBuilder> stickerBuilders = createStickerBuilders(packageId, packageName, stickersInfo);
+        List<Indexable> stickers = getIndexableStickers(packageName, stickerBuilders);
+        Indexable stickerPack = getIndexableStickerPack(packageId, packageName, defaultStickerUrl, stickerBuilders);
 
-            task.addOnSuccessListener(new OnSuccessListener<Void>() {
-                @Override
-                public void onSuccess(Void aVoid) {
-                    Log.d(LOG_TAG, INSTALL_STICKERS_SUCCESSFULLY);
-                }
-            });
+        List<Indexable> indexables = new ArrayList<>(stickers);
+        indexables.add(stickerPack);
 
-            task.addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.e(LOG_TAG, FAILED_TO_INSTALL_STICKERS, e);
-                }
-            });
+        Task<Void> task = firebaseAppIndex.update(
+                indexables.toArray(new Indexable[indexables.size()]));
 
-        } catch (IOException | FirebaseAppIndexingInvalidArgumentException e) {
-            Log.e(LOG_TAG, "Unable to set stickers", e);
-        }
+        task.addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d(LOG_TAG, INSTALL_STICKERS_SUCCESSFULLY);
+            }
+        });
+
+        task.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e(LOG_TAG, FAILED_TO_INSTALL_STICKERS, e);
+            }
+        });
     }
 
-    private Indexable getIndexableStickerPack(String packageId, String packageName, String defaultStickerUrl, List<StickerBuilder> stickerBuilders)
-            throws IOException, FirebaseAppIndexingInvalidArgumentException {
+    // Helper methods for building indexables
+
+    private Indexable getIndexableStickerPack(String packageId, String packageName, String defaultStickerUrl, List<StickerBuilder> stickerBuilders) {
 
         StickerPackBuilder stickerPackBuilder = Indexables.stickerPackBuilder()
                 .setName(packageName)
                 .setUrl(String.format(STICKER_PACK_URL_PATTERN, packageId))
                 .setImage(defaultStickerUrl)
                 .setHasSticker(stickerBuilders.toArray(new StickerBuilder[stickerBuilders.size()]));
-        
-         return stickerPackBuilder.build();
+
+        return stickerPackBuilder.build();
     }
 
-    private List<Indexable> getIndexableStickers(String packageName, List<StickerBuilder> stickerBuilders) throws IOException, FirebaseAppIndexingInvalidArgumentException {
+    private List<Indexable> getIndexableStickers(String packageName, List<StickerBuilder> stickerBuilders) {
         List<Indexable> indexableStickers = new ArrayList<>();
 
         for (StickerBuilder stickerBuilder : stickerBuilders) {
@@ -232,12 +241,11 @@ public class AppIndexingUpdateService extends JobIntentService {
         return indexableStickers;
     }
 
-    private List<StickerBuilder> createStickerBuilders(String packageId, String packageName, HashMap<String, String[]> stickersInfo) throws IOException,
-            FirebaseAppIndexingInvalidArgumentException {
+    private List<StickerBuilder> createStickerBuilders(String packageId, String packageName, HashMap<String, String[]> stickersInfo) {
         List<StickerBuilder> stickerBuilders = new ArrayList<>();
 
         int counter = 0;
-        for (Map.Entry<String, String[]> entry: stickersInfo.entrySet()) {
+        for (Map.Entry<String, String[]> entry : stickersInfo.entrySet()) {
             String imageUrl = entry.getKey();
             String[] tags = entry.getValue();
             Log.d(LOG_TAG, Arrays.toString(tags));
@@ -256,9 +264,11 @@ public class AppIndexingUpdateService extends JobIntentService {
         return stickerBuilders;
     }
 
+    // Static helper methods for extracting data from the passed sticker pack object.
+
     private static HashMap<String, String[]> extractStickersInfoFromPackage(ReadableArray stickers) {
         HashMap<String, String[]> stickerInfo = new HashMap<>(stickers.size());
-        for(int i=0; i < stickers.size(); i++){
+        for (int i = 0; i < stickers.size(); i++) {
             ReadableMap stickerNode = stickers.getMap(i).getMap("node");
             String url = extractUrlFromSticker(stickerNode);
             String[] tags = extractTagsFromSticker(stickerNode);
@@ -277,17 +287,23 @@ public class AppIndexingUpdateService extends JobIntentService {
     }
 
     private static String extractDefaultStickerUrlFromPackage(ReadableMap stickerPack) {
-        return stickerPack.getMap("defaultSticker").getString("fileUrl");
+        ReadableMap defaultSticker = stickerPack.getMap("defaultSticker");
+
+        return defaultSticker.getBoolean("isAnimated") ?
+                defaultSticker.getString("animatedFileUrl") :
+                defaultSticker.getString("fileUrl");
     }
 
     private static String extractUrlFromSticker(ReadableMap stickerNode) {
-        return stickerNode.getString("fileUrl");
+        return stickerNode.getBoolean("isAnimated") ?
+                stickerNode.getString("animatedFileUrl") :
+                stickerNode.getString("fileUrl");
     }
 
     private static String[] extractTagsFromSticker(ReadableMap stickerNode) {
         ReadableArray tagsArray = stickerNode.getMap("tags").getArray("edges");
         String[] tags = new String[tagsArray.size()];
-        for (int i=0; i<tags.length; i++) {
+        for (int i = 0; i < tags.length; i++) {
             String tagName = tagsArray.getMap(i).getMap("node").getString("name");
             tags[i] = tagName;
         }
