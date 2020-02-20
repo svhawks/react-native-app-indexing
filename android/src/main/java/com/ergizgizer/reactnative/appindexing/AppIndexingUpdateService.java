@@ -3,9 +3,9 @@ package com.ergizgizer.reactnative.appindexing;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.JobIntentService;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.JobIntentService;
 import android.util.Log;
 
 import com.facebook.react.bridge.ReadableArray;
@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 
 public class AppIndexingUpdateService extends JobIntentService {
-
     private static final String LOG_TAG = AppIndexingUpdateService.class.getSimpleName();
 
     private static final int UNIQUE_JOB_ID = 42;
@@ -84,15 +83,16 @@ public class AppIndexingUpdateService extends JobIntentService {
             default:
                 throw new IllegalStateException("This action is not recognized in this service");
         }
-
     }
 
     private static Intent buildIntentWithStickerData(@Nullable ReadableMap stickerPack, String action) {
         Intent intent = new Intent();
         intent.setAction(action);
 
-        //Return the intent early with only the action key.
-        if (action == REMOVE_ALL_STICKERS_ACTION) return intent;
+        // Return the intent early with only the action key.
+        if (action == REMOVE_ALL_STICKERS_ACTION) {
+            return intent;
+        }
 
         ReadableArray stickers = stickerPack.getMap("stickers").getArray("edges");
         String packageId = extractPackageIdFromPackage(stickerPack);
@@ -103,8 +103,9 @@ public class AppIndexingUpdateService extends JobIntentService {
         intent.putExtra(STICKERS_COUNT_KEY, stickerCount);
 
         // Return the intent early with only the action key and packageId.
-        if (action == REMOVE_STICKERS_ACTION) return intent;
-
+        if (action == REMOVE_STICKERS_ACTION) {
+            return intent;
+        }
 
         // Add other necessary data for add action.
         if (action == ADD_STICKERS_ACTION) {
@@ -189,7 +190,6 @@ public class AppIndexingUpdateService extends JobIntentService {
         String defaultStickerUrl = stickerData.getString(DEFAULT_STICKER_URL_KEY);
         HashMap<String, String[]> stickersInfo = (HashMap<String, String[]>) stickerData.getSerializable(STICKER_INFO_MAP_KEY);
 
-
         // Build indexables
         List<StickerBuilder> stickerBuilders = createStickerBuilders(packageId, packageName, stickersInfo);
         List<Indexable> stickers = getIndexableStickers(packageName, stickerBuilders);
@@ -219,7 +219,6 @@ public class AppIndexingUpdateService extends JobIntentService {
     // Helper methods for building indexables
 
     private Indexable getIndexableStickerPack(String packageId, String packageName, String defaultStickerUrl, List<StickerBuilder> stickerBuilders) {
-
         StickerPackBuilder stickerPackBuilder = Indexables.stickerPackBuilder()
                 .setName(packageName)
                 .setUrl(String.format(STICKER_PACK_URL_PATTERN, packageId))
@@ -258,7 +257,7 @@ public class AppIndexingUpdateService extends JobIntentService {
                     .setKeywords(tags);
 
             stickerBuilders.add(stickerBuilder);
-            counter++;
+            ++counter;
         }
 
         return stickerBuilders;

@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class AppIndexingPackage implements ReactPackage {
-
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
         List<NativeModule> modules = new ArrayList<>();

@@ -7,9 +7,7 @@ import com.facebook.react.jstasks.HeadlessJsTaskConfig;
 
 import javax.annotation.Nullable;
 
-
 public class AppIndexingUpdateHeadlessTask extends HeadlessJsTaskService {
-
     private static final String TASK_ID = "APP_INDEXING";
 
     @Nullable
